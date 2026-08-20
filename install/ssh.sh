@@ -297,11 +297,5 @@ echo -e " Dropbear Version: $(dropbear -V 2>&1 | awk '{print $1}')"
 echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 echo ""
 
-read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-
-if command -v menu &> /dev/null; then
-    menu
-else
-    exit 0
-fi
-
+sleep 3
+exit 0
