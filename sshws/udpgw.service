@@ -1,0 +1,15 @@
+[Unit]
+Description=BadVPN UDPGW Service - by znandev
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+ExecStart=/usr/local/bin/badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 500 --max-connections-for-ip 20
+Restart=always
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target
+
