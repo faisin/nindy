@@ -183,12 +183,5 @@ echo -e " Default User   : testuser"
 echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 echo ""
 
-read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-
-# Kembali ke menu utama atau fungsi menu
-if command -v menu &> /dev/null; then
-    menu
-else
-    exit 0
-fi
-
+sleep 3
+exit 0
