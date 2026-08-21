@@ -1,12 +1,9 @@
 #!/bin/bash
 # ==========================================
-# Setup Script XRAY_AIO (Fixed Flow Version)
-# XRAY + WireGuard + UDP ZIVPN
+# Setup Script XRAY_AIO (Fixed Execution Path)
 # ==========================================
 
-echo "" > /root/log-install.txt
-cd "$(dirname "$0")"
-clear
+export DEBIAN_FRONTEND=noninteractive
 
 red='\e[1;31m'
 green='\e[0;32m'
@@ -26,55 +23,21 @@ if [ "${EUID}" -ne 0 ]; then
     exit 1
 fi
 
-if [ "$(systemd-detect-virt)" == "openvz" ]; then
-    error "OpenVZ tidak didukung. Gunakan KVM/VMWare."
-    exit 1
-fi
+# Tentukan direktori tempat script dijalankan (folder nindy)
+BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$BASE_DIR"
 
-# Fix /etc/hosts
-localip=$(hostname -I | awk '{print $1}')
-hostname=$(hostname)
-domainline=$(grep -w "$hostname" /etc/hosts | awk '{print $2}')
-if [[ "$hostname" != "$domainline" ]]; then
-    echo "$localip $hostname" >> /etc/hosts
-fi
+clear
 
-# Create Folders
+# Buat direktori dasar
 mkdir -p /etc/xray /etc/v2ray /var/lib
-for file in domain scdomain; do
-    touch /etc/xray/$file /etc/v2ray/$file /root/$file
-done
-touch /var/lib/ipvps.conf
-
+touch /etc/xray/domain /etc/v2ray/domain /root/domain /var/lib/ipvps.conf
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 
-# Update & Install Packages (UFW dihapus agar tidak konflik)
-info "Installing dependencies..."
+# Update & Install Dependencies Dasar
+info "Installing system dependencies..."
 apt update -y
-apt install -y \
-curl \
-wget \
-git \
-screen \
-unzip \
-bzip2 \
-gzip \
-coreutils \
-python3 \
-python3-pip \
-iptables \
-iptables-persistent \
-netfilter-persistent \
-vnstat \
-openssl || { error "Gagal menginstal dependencies utama"; exit 1; }
-
-# Install Linux Header
-kernelver=$(uname -r)
-headerpkg="linux-headers-$kernelver"
-if ! dpkg -s $headerpkg >/dev/null 2>&1; then
-    info "Installing $headerpkg..."
-    apt install -y $headerpkg
-fi
+apt install -y curl wget git screen unzip bzip2 gzip coreutils python3 iptables iptables-persistent netfilter-persistent vnstat openssl || { error "Gagal menginstal dependencies"; exit 1; }
 
 # Domain Setup
 clear
@@ -90,111 +53,102 @@ if [[ -z "$domain" ]]; then
 fi
 
 echo "$domain" > /root/domain
-for dfile in domain scdomain; do
-    echo "$domain" > /etc/xray/$dfile
-    echo "$domain" > /etc/v2ray/$dfile
-    echo "$domain" > /root/$dfile
-done
+echo "$domain" > /etc/xray/domain
+echo "$domain" > /etc/v2ray/domain
 echo "IP=$domain" > /var/lib/ipvps.conf
 
 info "Domain berhasil diset: $domain"
 sleep 2
 
 # ==========================================
-# RUN INSTALLER MODULES
+# EKSEKUSI MODUL INSTALASI SECARA BERURUTAN
 # ==========================================
-info "Menjalankan instalasi modul..."
+info "Menjalankan modul instalasi..."
 
-if [ -f "install/nginx.sh" ]; then
-    bash install/nginx.sh
+# 1. Nginx
+if [ -f "$BASE_DIR/install/nginx.sh" ]; then
+    bash "$BASE_DIR/install/nginx.sh"
 else
-    warn "install/nginx.sh tidak ditemukan!"
+    error "install/nginx.sh tidak ditemukan!"
+    exit 1
 fi
 
-if [ -f "install/xray.sh" ]; then
-    bash install/xray.sh
+# 2. Xray
+if [ -f "$BASE_DIR/install/xray.sh" ]; then
+    bash "$BASE_DIR/install/xray.sh"
 else
-    warn "install/xray.sh tidak ditemukan!"
+    error "install/xray.sh tidak ditemukan!"
+    exit 1
 fi
 
-if [ -f "install/ssh.sh" ]; then
-    bash install/ssh.sh
+# 3. SSH
+if [ -f "$BASE_DIR/install/ssh.sh" ]; then
+    bash "$BASE_DIR/install/ssh.sh"
 else
-    warn "install/ssh.sh tidak ditemukan!"
+    error "install/ssh.sh tidak ditemukan!"
+    exit 1
 fi
 
-if [ -f "install/wg.sh" ]; then
-    bash install/wg.sh
+# 4. WireGuard
+if [ -f "$BASE_DIR/install/wg.sh" ]; then
+    bash "$BASE_DIR/install/wg.sh"
 else
-    warn "install/wg.sh tidak ditemukan!"
+    error "install/wg.sh tidak ditemukan!"
+    exit 1
 fi
 
-if [ -f "install/zivpn.sh" ]; then
-    bash install/zivpn.sh
+# 5. ZiVPN
+if [ -f "$BASE_DIR/install/zivpn.sh" ]; then
+    bash "$BASE_DIR/install/zivpn.sh"
 else
-    warn "install/zivpn.sh tidak ditemukan!"
+    error "install/zivpn.sh tidak ditemukan!"
+    exit 1
 fi
 
 # ==========================================
-# COPY MENU & SUBMENU COMMANDS
+# MENYALIN FILE MENU & COMMANDS
 # ==========================================
 info "Menyalin command menu..."
 
-[ -f "ssh/m-ssh" ] && cp -f ssh/m-ssh /usr/bin/
-[ -f "xray/m-vmess" ] && cp -f xray/m-vmess /usr/bin/
-[ -f "xray/m-vless" ] && cp -f xray/m-vless /usr/bin/
-[ -f "xray/m-trojan" ] && cp -f xray/m-trojan /usr/bin/
-[ -f "xray/m-ssws" ] && cp -f xray/m-ssws /usr/bin/
-[ -f "wg/m-wg" ] && cp -f wg/m-wg /usr/bin/
-[ -f "udp/m-zivpn" ] && cp -f udp/m-zivpn /usr/bin/
+[ -f "$BASE_DIR/ssh/m-ssh" ] && cp -f "$BASE_DIR/ssh/m-ssh" /usr/bin/
+[ -f "$BASE_DIR/xray/m-vmess" ] && cp -f "$BASE_DIR/xray/m-vmess" /usr/bin/
+[ -f "$BASE_DIR/xray/m-vless" ] && cp -f "$BASE_DIR/xray/m-vless" /usr/bin/
+[ -f "$BASE_DIR/xray/m-trojan" ] && cp -f "$BASE_DIR/xray/m-trojan" /usr/bin/
+[ -f "$BASE_DIR/xray/m-ssws" ] && cp -f "$BASE_DIR/xray/m-ssws" /usr/bin/
+[ -f "$BASE_DIR/wg/m-wg" ] && cp -f "$BASE_DIR/wg/m-wg" /usr/bin/
+[ -f "$BASE_DIR/udp/m-zivpn" ] && cp -f "$BASE_DIR/udp/m-zivpn" /usr/bin/
 
-[ -f "tools/tools-menu" ] && cp -f tools/tools-menu /usr/bin/
-[ -f "tools/backup.sh" ] && cp -f tools/backup.sh /usr/bin/
-[ -f "tools/speedtest.sh" ] && cp -f tools/speedtest.sh /usr/bin/
-[ -f "tools/domain.sh" ] && cp -f tools/domain.sh /usr/bin/
-[ -f "tools/running.sh" ] && cp -f tools/running.sh /usr/bin/
+[ -f "$BASE_DIR/tools/tools-menu" ] && cp -f "$BASE_DIR/tools/tools-menu" /usr/bin/
+[ -f "$BASE_DIR/tools/backup.sh" ] && cp -f "$BASE_DIR/tools/backup.sh" /usr/bin/
+[ -f "$BASE_DIR/tools/speedtest.sh" ] && cp -f "$BASE_DIR/tools/speedtest.sh" /usr/bin/
+[ -f "$BASE_DIR/tools/domain.sh" ] && cp -f "$BASE_DIR/tools/domain.sh" /usr/bin/
+[ -f "$BASE_DIR/tools/running.sh" ] && cp -f "$BASE_DIR/tools/running.sh" /usr/bin/
 
-if [ -f "menu.sh" ]; then
-    cp -f menu.sh /usr/bin/menu
+if [ -f "$BASE_DIR/menu.sh" ]; then
+    cp -f "$BASE_DIR/menu.sh" /usr/bin/menu
 else
-    error "File menu.sh tidak ditemukan di repository!"
+    error "File menu.sh tidak ditemukan!"
 fi
 
-# Set Permissions
+# Berikan izin eksekusi
 chmod +x /usr/bin/menu 2>/dev/null
 for cmd in m-ssh m-vmess m-vless m-trojan m-ssws m-wg m-zivpn tools-menu backup.sh speedtest.sh domain.sh running.sh; do
     [ -f "/usr/bin/$cmd" ] && chmod +x "/usr/bin/$cmd"
 done
 
-# Copy Runtime Submenus to /etc/autoscriptvpn/
-info "Menyalin sub-skrip ke direktori sistem..."
-mkdir -p /etc/autoscriptvpn/{ssh,xray,wg,udp,tools}
-
-[ -d "ssh" ] && cp -r ssh/* /etc/autoscriptvpn/ssh/ 2>/dev/null
-[ -d "xray" ] && cp -r xray/* /etc/autoscriptvpn/xray/ 2>/dev/null
-[ -d "wg" ] && cp -r wg/* /etc/autoscriptvpn/wg/ 2>/dev/null
-[ -d "udp" ] && cp -r udp/* /etc/autoscriptvpn/udp/ 2>/dev/null
-[ -d "tools" ] && cp -r tools/* /etc/autoscriptvpn/tools/ 2>/dev/null
-
-chmod +x /etc/autoscriptvpn/*/*.sh 2>/dev/null
-
-# Auto Menu Login via .profile
+# Set Profile Auto Login Menu
 cat > /root/.profile <<-EOF
 if [ "\$BASH" ]; then
     if [ -f ~/.bashrc ]; then
         . ~/.bashrc
     fi
 fi
-
 clear
 menu
 EOF
 chmod 644 /root/.profile
 
-# Clean up temp files
-rm -f cf ins-xray.sh
-
-# Finish
+# Selesai
 end_time=$(date +%s)
 elapsed=$((end_time - start_time))
 clear
@@ -202,15 +156,15 @@ clear
 echo -e "${blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${green}      INSTALLATION DONE${NC}"
 echo -e "${blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e " SSH         : INSTALLED"
-echo -e " XRAY        : INSTALLED"
-echo -e " WireGuard   : INSTALLED"
-echo -e " UDP ZIVPN   : INSTALLED"
+echo -e " NGINX & XRAY : INSTALLED & RUNNING"
+echo -e " SSH & TUNNEL : INSTALLED & RUNNING"
+echo -e " WireGuard   : INSTALLED & RUNNING"
+echo -e " UDP ZIVPN   : INSTALLED & RUNNING"
 echo ""
 echo -e " Waktu Instalasi : $((elapsed / 60)) menit $((elapsed % 60)) detik"
 echo -e "${blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo -e "${green}♻️ VPS akan reboot dalam 10 detik...${NC}"
+echo -e "${green}♻️ VPS akan reboot dalam 5 detik...${NC}"
 
-sleep 10
+sleep 5
 reboot
