@@ -24,8 +24,14 @@ if ! command -v nginx >/dev/null 2>&1; then
     exit 1
 fi
 
-# Cek direktori konfigurasi secara fleksibel (mendukung ~/AutoscriptXRAY atau /etc/autoscriptvpn)
-CONFIG_DIR="$HOME/AutoscriptXRAY/config"
+# Cek direktori konfigurasi secara fleksibel (mendukung nindy, AutoscriptXRAY, dll)
+CONFIG_DIR="$(cd "$(dirname "$0")/.." && pwd)/config"
+if [[ ! -d "$CONFIG_DIR" ]]; then
+    CONFIG_DIR="$HOME/nindy/config"
+fi
+if [[ ! -d "$CONFIG_DIR" ]]; then
+    CONFIG_DIR="$HOME/AutoscriptXRAY/config"
+fi
 if [[ ! -d "$CONFIG_DIR" ]]; then
     CONFIG_DIR="/etc/autoscriptvpn/config"
 fi
