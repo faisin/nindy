@@ -94,7 +94,7 @@ if ! xray -test -config /etc/xray/config.json >/dev/null 2>&1; then
 fi
 
 # restart xray
-systemctl restart xray
+#systemctl restart xray
 
 # cek status xray
 if ! systemctl is-active --quiet xray; then
