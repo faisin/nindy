@@ -105,6 +105,13 @@ else
     exit 1
 fi
 
+# 6. UDP Custom (Ditambahkan di sini)
+if [ -f "$BASE_DIR/install/udp-custom.sh" ]; then
+    bash "$BASE_DIR/install/udp-custom.sh"
+else
+    warn "install/udp-custom.sh tidak ditemukan, melewati instalasi UDP Custom."
+fi
+
 # ==========================================
 # MENYALIN FILE MENU & COMMANDS
 # ==========================================
@@ -160,6 +167,7 @@ echo -e " NGINX & XRAY : INSTALLED & RUNNING"
 echo -e " SSH & TUNNEL : INSTALLED & RUNNING"
 echo -e " WireGuard   : INSTALLED & RUNNING"
 echo -e " UDP ZIVPN   : INSTALLED & RUNNING"
+echo -e " UDP CUSTOM  : INSTALLED & RUNNING"
 echo ""
 echo -e " Waktu Instalasi : $((elapsed / 60)) menit $((elapsed % 60)) detik"
 echo -e "${blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
