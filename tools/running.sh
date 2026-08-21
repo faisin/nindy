@@ -40,7 +40,8 @@ else
 fi
 
 # UDP Custom
-if systemctl is-active --quiet udp-custom; then
+status=$(systemctl is-active udp-custom 2>/dev/null)
+if [[ "$status" == "active" || "$status" == "activating" ]]; then
     udp_custom_status="${green}ONLINE${NC}"
 else
     udp_custom_status="${red}OFFLINE${NC}"
