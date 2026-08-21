@@ -85,7 +85,7 @@ WG=$(systemctl is-active wg-quick@wg0)
 ZIVPN=$(systemctl is-active zivpn)
 [[ $ZIVPN == "active" ]] && ZIVPN="${GREEN}🟢 ONLINE ${NC}" || ZIVPN="${RED}🔴 OFFLINE${NC}"
 
-UDPCUSTOM=$(systemctl is-active udp-custom)
+UDPCUSTOM=$(systemctl is-active udp-custom || systemctl is-active udp)
 [[ $UDPCUSTOM == "active" ]] && UDPCUSTOM="${GREEN}🟢 ONLINE ${NC}" || UDPCUSTOM="${RED}🔴 OFFLINE${NC}"
 
 # Diperbarui menggunakan sshws
