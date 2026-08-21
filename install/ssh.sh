@@ -27,8 +27,14 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # ================= DETEKSI DIREKTORI REPO =================
-REPO_DIR="$HOME/AutoscriptXRAY"
-if [[ ! -d "$REPO_DIR" ]]; then
+REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+if [[ ! -d "$REPO_DIR/config" ]]; then
+    REPO_DIR="$HOME/nindy"
+fi
+if [[ ! -d "$REPO_DIR/config" ]]; then
+    REPO_DIR="$HOME/AutoscriptXRAY"
+fi
+if [[ ! -d "$REPO_DIR/config" ]]; then
     REPO_DIR="/etc/autoscriptvpn"
 fi
 
@@ -269,33 +275,6 @@ chmod +x /etc/profile.d/no-login.sh
 
 # ================= HOLD DROPBEAR =================
 apt-mark hold dropbear dropbear-bin >/dev/null 2>&1 || true
-
-# ================= INSTALL LOG =================
-touch /root/log-install.txt
-cat >> /root/log-install.txt <<EOF
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SSH & TUNNEL PANEL
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-OpenSSH             : 22
-Dropbear            : 109, 143
-SSH Websocket       : 2082
-SSH SSL Websocket   : 2096
-BadVPN UDPGW        : 7300
-UDP Custom          : All Ports (Exclude 7300)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EOF
-
-clear
-
-# ================= SUMMARY =================
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m    SSH + WS INSTALLED SUCCESS     \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e " Status Services : ${GREEN}ALL RUNNING (ONLINE)${NC}"
-echo -e " Dropbear Version: $(dropbear -V 2>&1 | awk '{print $1}')"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo ""
 
 sleep 3
 exit 0
