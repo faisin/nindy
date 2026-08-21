@@ -72,7 +72,7 @@ TOTAL_BW=$(vnstat --oneline 2>/dev/null | cut -d; -f15)
 
 # ================= STATUS SERVICE =================
 
-# Mengecek service disesuaikan dengan script uninstall
+# Disesuaikan dengan nama service yang aktif di sistem Anda
 XRAY=$(systemctl is-active xray)
 [[ $XRAY == "active" ]] && XRAY="${GREEN}🟢 ONLINE ${NC}" || XRAY="${RED}🔴 OFFLINE${NC}"
 
@@ -88,12 +88,12 @@ ZIVPN=$(systemctl is-active zivpn)
 UDPCUSTOM=$(systemctl is-active udp-custom)
 [[ $UDPCUSTOM == "active" ]] && UDPCUSTOM="${GREEN}🟢 ONLINE ${NC}" || UDPCUSTOM="${RED}🔴 OFFLINE${NC}"
 
-# Menggunakan ws-dropbear sesuai uninstall script (bukan dropbear-ws)
-DROPBEARWS=$(systemctl is-active ws-dropbear)
+# Diperbarui menggunakan sshws
+DROPBEARWS=$(systemctl is-active sshws)
 [[ $DROPBEARWS == "active" ]] && DROPBEARWS="${GREEN}🟢 ONLINE ${NC}" || DROPBEARWS="${RED}🔴 OFFLINE${NC}"
 
-# Menggunakan ws-stunnel sesuai uninstall script (bukan stunnel-ws)
-STUNNELWS=$(systemctl is-active ws-stunnel)
+# Diperbarui menggunakan stunnelws
+STUNNELWS=$(systemctl is-active stunnelws)
 [[ $STUNNELWS == "active" ]] && STUNNELWS="${GREEN}🟢 ONLINE ${NC}" || STUNNELWS="${RED}🔴 OFFLINE${NC}"
 
 DROPBEAR=$(systemctl is-active dropbear)
@@ -108,7 +108,6 @@ SSWS=$(jq '[.inbounds[] | select(.tag=="ssws-ws-tls").settings.clients[]] | leng
 ZIVPN_USER=$(grep -vc '^$' /etc/zivpn/users.db 2>/dev/null || echo "0")
 SSH_USER=$(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd | wc -l || echo "0")
 
-# Mencegah error jika bernilai null/string kosong
 VMESS=${VMESS:-0}
 VLESS=${VLESS:-0}
 TROJAN=${TROJAN:-0}
@@ -209,14 +208,14 @@ case $menu in
     6) m-wg ;;
     7) m-zivpn ;;
     8) tools-menu ;;
-    9) running.sh ;; # Diperbaiki: Script 1 menyalinnya sebagai running.sh
+    9) running.sh ;;
     10) 
         echo -e "${CYAN}➜ Membersihkan RAM Cache...${NC}"
         sync; echo 3 > /proc/sys/vm/drop_caches
         sleep 1
         echo -e "${GREEN}✔ RAM berhasil dibersihkan!${NC}"
         sleep 1.5
-        exec menu # Kembali panggil menu.sh yang di /usr/bin/menu
+        exec menu
         ;;
     11) reboot ;;
     12) 
@@ -236,4 +235,3 @@ case $menu in
         exec menu
         ;;
 esac
-
