@@ -65,5 +65,5 @@ case $opt in
         sleep 1
         m-vmess
         ;;
-es:
+esac
 
