@@ -1,47 +1,33 @@
 #!/bin/bash
-# Atur ulang domain - by znandev
-set -e
+# Atur ulang domain - by znand-dev
 
 # Warna
-CYAN='\033[1;36m'
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-RED='\033[1;31m'
-NC='\033[0m'
+CYAN='\e[1;36m'
+GREEN='\e[1;32m'
+YELLOW='\e[1;33m'
+NC='\e[0m'
 
 clear
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m         GANTI DOMAIN XRAY         \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo ""
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}              🌐 GANTI DOMAIN XRAY            ${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-# Pastikan direktori xray tersedia
-mkdir -p /etc/xray
+# Minta domain baru
+read -rp "📌 Masukkan domain baru: " new_domain
 
-# Minta domain baru dengan validasi
-until [[ $new_domain =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
-    read -rp "📌 Masukkan domain baru (contoh: domain.com): " new_domain
-done
+# Validasi input
+if [[ -z "$new_domain" ]]; then
+    echo -e "${YELLOW}❌ Domain tidak boleh kosong!${NC}"
+    exit 1
+fi
 
 # Simpan domain baru ke file
 echo "$new_domain" > /etc/xray/domain
 
-# Restart service terkait jika ada
-echo -e "\n🔄 Menerapkan perubahan domain..."
-systemctl restart xray 2>/dev/null || true
-systemctl restart zivpn 2>/dev/null || true
+# Restart service
+systemctl restart xray
 
-clear
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m       DOMAIN BERHASIL DIGANTI     \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\n${GREEN}✅ Domain berhasil diperbarui!${NC}"
+# Output
+echo -e "${GREEN}✅ Domain berhasil diganti!${NC}"
 echo -e "🌐 Domain baru: ${CYAN}$new_domain${NC}"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo ""
-
-read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-
-# Kembali ke menu utama
-menu
-
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
