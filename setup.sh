@@ -166,19 +166,25 @@ echo ""
 info "Domain berhasil diset: $domain"
 
 sleep 2
-
 # ==========================================
-# RUN INSTALLER
+# PROSES LAYANAN ANAK SASAK SEDANG BERJALAN
 # ==========================================
 
-info "Installing NGINX Reverse Proxy..."
+info "Sedang memasang NGINX Reverse Proxy..."
 bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/nginx.sh)
 
-info "Installing XRAY Core..."
+info "Sedang memasang XRAY Core..."
 bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/xray.sh)
 
-info "Installing SSH Websocket..."
+info "Sedang memasang SSH Websocket..."
 bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/ssh.sh)
+
+info "Sedang memasang WireGuard..."
+bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/wg.sh)
+
+info "Sedang memasang UDP ZIVPN..."
+bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/zivpn.sh)
+
 
 # ==========================================
 # COPY MENU COMMAND
