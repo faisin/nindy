@@ -1,12 +1,9 @@
 #!/bin/bash
-# Cek login Trojan - by znandev
 
 clear
 
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[1;31m'
 NC='\033[0m'
 
 LOG="/var/log/xray/access.log"
@@ -17,56 +14,29 @@ echo -e "\E[44;1;39m            CEK LOGIN TROJAN USER            \E[0m"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
-# Validasi file log & config
-if [[ ! -f $LOG ]]; then
-    echo -e "${RED}❌ Log file access.log tidak ditemukan!${NC}"
-    echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    menu
-fi
-
-if [[ ! -f $CONFIG ]]; then
-    echo -e "${RED}❌ File config.json tidak ditemukan!${NC}"
-    echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    menu
-fi
-
 printf "%-15s %-18s\n" "USERNAME" "IP CLIENT"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# Mengambil daftar user dari tag inbounds trojan yang sesuai dengan skrip add trojan
-users=$(jq -r '.inbounds[] | select(.tag=="trojan-ws-tls" or .tag=="trojan-grpc") | .settings.clients[].email' "$CONFIG" 2>/dev/null)
+users=$(jq -r '.inbounds[] | select(.tag=="trojan-tls") | .settings.clients[].email' $CONFIG)
 
-if [[ -z "$users" ]]; then
-    echo -e "${YELLOW}Tidak ada pengguna Trojan yang terdaftar.${NC}"
-else
-    # Mengambil IP unik dari log akses
-    ips=$(grep "accepted" "$LOG" 2>/dev/null \
-    | awk -F'from ' '{print $2}' \
-    | cut -d':' -f1 \
-    | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' \
-    | grep -v "127.0.0.1" \
-    | sort -u)
+ips=$(grep "accepted" $LOG \
+| awk -F'from ' '{print $2}' \
+| cut -d':' -f1 \
+| grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' \
+| grep -v "127.0.0.1" \
+| sort -u)
 
-    if [[ -z "$ips" ]]; then
-        echo -e "${YELLOW}Tidak ada aktivitas koneksi aktif saat ini.${NC}"
-    else
-        for user in $users
-        do
-            for ip in $ips
-            do
-                printf "${GREEN}%-15s${NC} %-18s\n" "$user" "$ip"
-            done
-        done
-    fi
-fi
+for user in $users
+do
+for ip in $ips
+do
+printf "${GREEN}%-15s${NC} %-18s\n" "$user" "$ip"
+done
+done
 
 echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
 
-# Kembali ke menu utama
-menu
-
+m-trojan
