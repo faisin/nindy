@@ -1,22 +1,18 @@
 #!/bin/bash
-# Install & Restart Nginx
-echo "Memasang Nginx..."
+# ==========================================
+# Installer Nginx Web Server
+# ==========================================
 
-# Update dan Install Nginx
-apt-get update -y
-apt-get install -y nginx
+echo -e "\033[0;34m[*] Menginstal Nginx Web Server...\033[0m"
 
-# Pastikan Nginx berjalan di port 80 dan 443
-systemctl stop apache2 >/dev/null 2>&1 || true
-systemctl disable apache2 >/dev/null 2>&1 || true
+apt update && apt install -y nginx
 
-# Aktifkan dan restart Nginx
+# Buat folder web root jika belum ada
+mkdir -p /var/www/html
+
+# Konfigurasi service Nginx
+systemctl daemon-reload
 systemctl enable nginx
-systemctl restart nginx
+systemctl start nginx
 
-# Cek status
-if systemctl is-active --quiet nginx; then
-    echo "Nginx berhasil dijalankan."
-else
-    echo "Nginx gagal dijalankan, cek error dengan: systemctl status nginx"
-fi
+echo -e "\033[0;32m[✓] Nginx berhasil diinstal dan dijalankan!\033[0m"
