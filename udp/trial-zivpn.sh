@@ -1,8 +1,7 @@
 #!/bin/bash
 # ==========================================
-# TRIAL ZIVPN USER - by znandev
+# TRIAL ZIVPN USER
 # ==========================================
-set -e
 
 DB="/etc/zivpn/users.db"
 
@@ -15,52 +14,51 @@ CYAN='\033[1;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m       TRIAL ZIVPN USER            \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo ""
-
-# Pastikan direktori database tersedia
-mkdir -p /etc/zivpn
-touch "$DB"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}      TRIAL ZIVPN USER${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 # ==============================
 # GENERATE USER
 # ==============================
-USER="trial$(tr -dc a-z0-9 </dev/urandom 2>/dev/null | head -c4 || echo $RANDOM)"
+
+USER="trial$(tr -dc a-z0-9 </dev/urandom | head -c4)"
 
 # ==============================
 # CHECK DUPLICATE
 # ==============================
-while grep -qw "^$USER" "$DB" 2>/dev/null; do
-    USER="trial$(tr -dc a-z0-9 </dev/urandom 2>/dev/null | head -c4 || echo $RANDOM)"
+
+while grep -qw "^$USER" $DB; do
+    USER="trial$(tr -dc a-z0-9 </dev/urandom | head -c4)"
 done
 
 # ==============================
-# TRIAL EXPIRED (1 Hari)
+# TRIAL EXPIRED
 # ==============================
+
 DAYS=1
-EXP=$(date -d "$DAYS days" +"%Y-%m-%d" 2>/dev/null || date -d "+$DAYS day" +"%Y-%m-%d")
+EXP=$(date -d "$DAYS days" +"%Y-%m-%d")
 
 # ==============================
 # SAVE USER
 # ==============================
-echo "$USER $EXP" >> "$DB"
+
+echo "$USER $EXP" >> $DB
 
 # ==============================
 # REBUILD CONFIG
 # ==============================
-if [ -f /root/AutoscriptXRAY/udp/rebuild-config.sh ]; then
-    bash /root/AutoscriptXRAY/udp/rebuild-config.sh
-fi
+
+bash /root/AutoscriptXRAY/udp/rebuild-config.sh
 
 # ==============================
 # GET DOMAIN
 # ==============================
+
 DOMAIN=$(cat /etc/xray/domain 2>/dev/null)
 
 if [[ -z "$DOMAIN" ]]; then
-    DOMAIN=$(curl -s --max-time 5 ipv4.icanhazip.com || curl -s --max-time 5 ifconfig.me)
+    DOMAIN=$(curl -s ipv4.icanhazip.com)
 fi
 
 clear
@@ -68,10 +66,12 @@ clear
 # ==============================
 # OUTPUT
 # ==============================
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m      TRIAL ZIVPN ACCOUNT          \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}      TRIAL ZIVPN ACCOUNT${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+echo ""
 printf " ${WHITE}Username${NC}    : %s\n" "$USER"
 printf " ${WHITE}Password${NC}    : %s\n" "$USER"
 printf " ${WHITE}Host/IP${NC}     : %s\n" "$DOMAIN"
@@ -80,19 +80,21 @@ printf " ${WHITE}Protocol${NC}    : UDP\n"
 printf " ${WHITE}OBFS${NC}        : zivpn\n"
 printf " ${WHITE}Expired On${NC}  : %s\n" "$EXP"
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo ""
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+echo ""
 echo -e "${YELLOW}📱 ZIVPN CLIENT CONFIG${NC}"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo ""
 echo -e " Host      : ${DOMAIN}"
 echo -e " Password  : ${USER}"
 echo -e " UDP Mode  : ON"
 echo -e " TLS       : ON"
 echo -e " OBFS      : zivpn"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 
 echo ""
-read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-# Kembali ke menu ZIVPN
+echo ""
+read -n 1 -s -r -p "Press any key to back menu..."
 m-zivpn
-
