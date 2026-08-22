@@ -1,41 +1,166 @@
 #!/bin/bash
-# ==========================================
-# Buat Akun SSH & Dropbear Baru
-# ==========================================
 
 clear
-echo -e "\033[0;36m==========================================\033[0m"
-echo -e "\033[0;32m          BUAT AKUN SSH / DROPBEAR        \033[0m"
-echo -e "\033[0;36m==========================================\033[0m"
 
-read -p " Masukkan Username SSH : " username
-read -p " Masukkan Password     : " password
-read -p " Masukkan Masa Aktif (Hari) : " masa_aktif
+DOMAIN=$(cat /etc/xray/domain 2>/dev/null)
+IP=$(curl -s ipv4.icanhazip.com)
 
-if [ -z "$username" ] || [ -z "$password" ]; then
-    echo -e "\033[0;31m[X] Username dan password tidak boleh kosong!\033[0m"
-    exit 1
+if [[ -z "$DOMAIN" ]]; then
+DOMAIN="$IP"
 fi
 
-# Hitung tanggal expired
-exp_date=$(date -d "+$masa_aktif days" +"%Y-%m-%d")
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "      CREATE SSH ACCOUNT"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 
-# Tambahkan user sistem Linux
-useradd -e "$exp_date" -s /bin/false -M "$username"
-echo -e "$password\n$password" | passwd "$username" > /dev/null 2>&1
+read -p "Username      : " user
 
-# Ambil IP VPS
-ip_vps=$(curl -s ifconfig.me)
+# CHECK USER
+
+if id "$user" &>/dev/null; then
+echo ""
+echo "[ ERROR ] User already exists!"
+echo ""
+exit 1
+fi
+
+read -s -p "Password      : " pass
+echo ""
+
+read -p "Expired Days  : " days
+
+if ! [[ "$days" =~ ^[0-9]+$ ]]; then
+echo ""
+echo "[ ERROR ] Invalid expiration days!"
+echo ""
+exit 1
+fi
+
+EXP=$(date -d "$days days" +%Y-%m-%d)
+
+# CREATE USER
+
+useradd \
+    -e "$EXP" \
+    -m \
+    -s /bin/bash \
+    "$user"
+
+id "$user" >/dev/null 2>&1 || {
+    echo "[ERROR] Failed to create user!"
+    exit 1
+}
+
+echo "$user:$pass" | chpasswd || {
+    echo "[ERROR] Failed to set password!"
+    exit 1
+}
+
+mkdir -p /root/accounts
+
+ACCOUNT_FILE="/root/accounts/${user}.txt"
+
+cat > "$ACCOUNT_FILE" <<EOF
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SSH ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Username : $user
+Password : $pass
+Expired  : $EXP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Domain   : $DOMAIN
+IP VPS   : $IP
+
+OpenSSH  : 22
+Dropbear : 109,143
+SSH WS   : 2082
+SSH WSS  : 2096
+UdpSSH   : 1-65535
+BadVPN   : 7300
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SSH UDP CUSTOM
+
+$DOMAIN:1-65535@$user:$pass
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SSH WS
+
+$DOMAIN:2082@$user:$pass
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SSH WSS
+
+$DOMAIN:2096@$user:$pass
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Payload WS
+
+GET / HTTP/1.1[crlf]
+Host: $DOMAIN[crlf]
+Upgrade: websocket[crlf]
+Connection: Upgrade[crlf]
+[crlf]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Payload Enhanced
+
+GET / HTTP/1.1[crlf]
+Host: [host][crlf]
+[crlf]
+PATCH / HTTP/1.1[crlf]
+Host: $DOMAIN[crlf]
+Upgrade: websocket[crlf]
+Connection: Upgrade[crlf]
+[crlf][split]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EOF
 
 clear
-echo -e "\033[0;36m==========================================\033[0m"
-echo -e "\033[0;32m         AKUN SSH BERHASIL DIBUAT         \033[0m"
-echo -e "\033[0;36m==========================================\033[0m"
-echo -e " Host / IP   : \033[0;33m${ip_vps}\033[0m"
-echo -e " Username    : \033[0;33m${username}\033[0m"
-echo -e " Password    : \033[0;33m${password}\033[0m"
-echo -e " Port SSH    : \033[0;33m22, 109\033[0m"
-echo -e " Port Dropbear: \033[0;33m443\033[0m"
-echo -e " Expired On  : \033[0;33m${exp_date}\033[0m"
-echo -e "\033[0;36m==========================================\033[0m"
-read -p "Tekan [Enter] untuk kembali..."
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "       SSH ACCOUNT"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Username       : $user"
+echo "Password       : $pass"
+echo "Expired        : $EXP"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Domain         : $DOMAIN"
+echo "IP VPS         : $IP"
+echo ""
+echo "OpenSSH        : 22"
+echo "Dropbear       : 109,143"
+echo "SSH WS         : 2082"
+echo "SSH WSS        : 2096"
+echo "UdpSSH         : 1-65535"
+echo "BadVPN UDPGW   : 7300"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "SSH UDP CUSTOM"
+echo "$DOMAIN:1-65535@$user:$pass"
+echo ""
+echo "SSH WS"
+echo "$DOMAIN:2082@$user:$pass"
+echo ""
+echo "SSH WSS"
+echo "$DOMAIN:2096@$user:$pass"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Saved To:"
+echo "$ACCOUNT_FILE"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
