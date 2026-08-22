@@ -127,7 +127,7 @@ ufw >/dev/null 2>&1
 #if ! dpkg -s $headerpkg >/dev/null 2>&1; then
     info "Installing $headerpkg..."
     apt install -y $headerpkg || apt install -y linux-headers-amd64 || true
-fi
+#fi
 
 # ==========================================
 # DOMAIN SETUP
