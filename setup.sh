@@ -183,8 +183,8 @@ info "Sedang memasang WireGuard..."
 bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/wg.sh)
 
 info "Sedang memasang UDP ZIVPN..."
+wget -O /etc/issue.net https://raw.githubusercontent.com/faisin/nindy/main/ssh/issue.net || touch /etc/issue.net
 bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/zivpn.sh)
-
 
 # ==========================================
 # COPY MENU COMMAND
