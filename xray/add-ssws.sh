@@ -19,8 +19,8 @@ until [[ $user =~ ^[a-zA-Z0-9_]+$ ]]; do
     read -rp "Username : " user
 done
 
-# cek duplicate user di config.json
-CLIENT_EXISTS=$(jq -r '.inbounds[].settings.clients[]?.email' /etc/xray/config.json 2>/dev/null | grep -w "$user" | wc -l)
+# cek duplicate user
+CLIENT_EXISTS=$(jq -r '.inbounds[].settings.clients[]?.email' /etc/xray/config.json | grep -w "$user" | wc -l)
 
 if [[ ${CLIENT_EXISTS} == '1' ]]; then
     echo ""
@@ -99,11 +99,15 @@ mv "$tmpfile" /etc/xray/config.json
 
 # test config xray
 if ! xray -test -config /etc/xray/config.json >/dev/null 2>&1; then
+
     echo ""
     echo "ERROR: Xray config failed!"
     echo "Restoring backup config..."
+
     cp /etc/xray/config.json.bak /etc/xray/config.json
+
     exit 1
+
 fi
 
 # restart xray
@@ -111,16 +115,20 @@ systemctl restart xray
 
 # cek status xray
 if ! systemctl is-active --quiet xray; then
+
     echo ""
     echo "ERROR: Xray failed start!"
     echo "Restoring backup config..."
+
     cp /etc/xray/config.json.bak /etc/xray/config.json
+
     systemctl restart xray
+
     exit 1
+
 fi
 
-# simpan database user (disesuaikan dengan direktori sistem)
-mkdir -p /etc/xray
+# simpan database user
 echo "${user} ${exp} ${uuid}" >> /etc/xray/ssws.db
 
 # encode password
@@ -168,6 +176,4 @@ echo ""
 
 read -n 1 -s -r -p "Press any key to back on menu"
 
-# Kembali ke menu utama (bukan m-ssws agar tidak looping ke script ini sendiri)
-menu
-
+m-ssws
