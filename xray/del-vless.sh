@@ -1,6 +1,4 @@
 #!/bin/bash
-# Delete VLESS Account - by znandev
-set -e
 
 clear
 
@@ -10,31 +8,30 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "\E[44;1;39m            DELETE VMESS ACCOUNT             \E[0m"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+
+echo -e "${CYAN}📋 List User VMess:${NC}"
+echo ""
+
 CONFIG="/etc/xray/config.json"
-DB_FILE="/etc/xray/vless.db"
 
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "\E[44;1;39m            DELETE VLESS ACCOUNT             \E[0m"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-
-echo -e "${CYAN}📋 List User Vless:${NC}"
-echo ""
-
-# Mengambil user dari tag inbounds vless yang sesuai
-users=$(jq -r '.inbounds[] | select(.tag=="vless-ws-tls" or .tag=="vless-ws-nontls" or .tag=="vless-grpc") | .settings.clients[].email' "$CONFIG" 2>/dev/null | sort -u)
+users=$(jq -r '.inbounds[] | select(.tag=="vmess-tls") | .settings.clients[].email' $CONFIG)
 
 if [[ -z "$users" ]]; then
-    echo -e "${RED}Tidak ada user VLESS!${NC}"
-    echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    menu
+echo -e "${RED}Tidak ada user VMess!${NC}"
+read -n 1 -s -r -p "Tekan apa saja untuk kembali..."
+m-vmess
+exit
 fi
 
 num=1
-for user in $users; do
-    printf "${GREEN}[%s]${NC} %s\n" "$num" "$user"
-    ((num++))
+for user in $users
+do
+printf "${GREEN}[%s]${NC} %s\n" "$num" "$user"
+((num++))
 done
 
 echo ""
@@ -42,64 +39,24 @@ echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━�
 read -rp "👉 Masukkan username yang ingin dihapus: " user
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-# Validasi apakah user ada
-CLIENT_EXISTS=$(jq -r '.inbounds[] | select(.tag=="vless-ws-tls" or .tag=="vless-ws-nontls" or .tag=="vless-grpc") | .settings.clients[]?.email' "$CONFIG" 2>/dev/null | grep -w "$user" | wc -l)
+jq --arg user "$user" '
+(.inbounds[] | select(.tag=="vmess-tls").settings.clients) |=
+map(select(.email != $user)) |
+(.inbounds[] | select(.tag=="vmess-nontls").settings.clients) |=
+map(select(.email != $user))
+' $CONFIG > /tmp/config.json
 
-if [[ ${CLIENT_EXISTS} == '0' ]]; then
-    echo -e "\n${RED}❌ Akun VLESS '${user}' tidak ditemukan!${NC}"
-    echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    menu
-fi
+mv /tmp/config.json $CONFIG
 
-# Backup config
-cp "$CONFIG" "${CONFIG}.bak"
+# hapus comment expiry
+sed -i "/#vmess $user/d" $CONFIG
 
-# Temp file untuk jq
-tmpfile=$(mktemp)
-
-# Hapus user dari inbounds Vless menggunakan jq
-if ! jq --arg user "$user" '
-(.inbounds[] | select(.tag=="vless-ws-tls").settings.clients) |= [ .[] | select(.email != $user) ] |
-(.inbounds[] | select(.tag=="vless-ws-nontls").settings.clients) |= [ .[] | select(.email != $user) ] |
-(.inbounds[] | select(.tag=="vless-grpc").settings.clients) |= [ .[] | select(.email != $user) ]
-' "$CONFIG" > "$tmpfile"; then
-    echo -e "\n${RED}ERROR: Gagal memproses konfigurasi dengan jq!${NC}"
-    rm -f "$tmpfile"
-    exit 1
-fi
-
-# Validasi hasil json sementara
-if ! jq empty "$tmpfile" >/dev/null 2>&1; then
-    echo -e "\n${RED}ERROR: Hasil konfigurasi JSON tidak valid!${NC}"
-    rm -f "$tmpfile"
-    exit 1
-fi
-
-# Timpa config lama
-mv "$tmpfile" "$CONFIG"
-
-# Test konfigurasi Xray
-if ! xray -test -config "$CONFIG" >/dev/null 2>&1; then
-    echo -e "\n${RED}ERROR: Tes konfigurasi Xray gagal! Mengembalikan cadangan...${NC}"
-    cp "${CONFIG}.bak" "$CONFIG"
-    exit 1
-fi
-
-# Restart Xray
 systemctl restart xray
 
-# Hapus data dari database lokal vless.db jika ada
-if [ -f "$DB_FILE" ]; then
-    grep -v "^$user " "$DB_FILE" > "${DB_FILE}.tmp" && mv "${DB_FILE}.tmp" "$DB_FILE"
-fi
-
 echo ""
-echo -e "${GREEN}✅ User VLESS '${user}' berhasil dihapus!${NC}"
+echo -e "${GREEN}✅ User VMess '${user}' berhasil dihapus!${NC}"
 echo ""
 
 read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
 
-# Kembali ke menu utama
-menu
-
+m-vmess
