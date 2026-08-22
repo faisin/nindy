@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# CHECK ZIVPN USER - by znandev
+# CHECK ZIVPN USER
 # ==========================================
 
 DB="/etc/zivpn/users.db"
@@ -14,34 +14,36 @@ CYAN='\033[1;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m          ZIVPN MEMBER LIST        \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}        ZIVPN MEMBER${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
 echo ""
 
 # ==============================
 # CHECK EMPTY DB
 # ==============================
-if [[ ! -f $DB ]] || [[ ! -s $DB ]]; then
-    echo -e "${RED}❌ No ZIVPN users found!${NC}"
+
+if [[ ! -s $DB ]]; then
+    echo -e "${RED}No ZIVPN users found!${NC}"
     echo ""
-    echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-    echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    m-zivpn
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    exit 0
 fi
 
 # ==============================
 # HEADER
 # ==============================
+
 printf "${WHITE} %-4s %-18s %-15s %-10s${NC}\n" \
 "NO" "USERNAME" "EXPIRED" "STATUS"
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 # ==============================
 # READ USER DB
 # ==============================
+
 NO=1
 
 while read -r user exp; do
@@ -50,7 +52,7 @@ while read -r user exp; do
     [[ -z "$user" ]] && continue
 
     # Expired check
-    exp_ts=$(date -d "$exp" +%s 2>/dev/null || date +%s)
+    exp_ts=$(date -d "$exp" +%s 2>/dev/null)
     now_ts=$(date +%s)
 
     if [[ $now_ts -gt $exp_ts ]]; then
@@ -66,17 +68,15 @@ while read -r user exp; do
 
 done < "$DB"
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo ""
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-TOTAL=$(grep -vc '^$' "$DB" 2>/dev/null || echo 0)
+TOTAL=$(grep -vc '^$' "$DB")
 
 echo -e "${WHITE}Total Users${NC} : $TOTAL"
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 echo ""
-read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-
-# Kembali ke menu ZIVPN
+read -n 1 -s -r -p "Press any key to back menu..."
 m-zivpn
-
