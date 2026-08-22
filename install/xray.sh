@@ -138,11 +138,11 @@ chmod 644 /etc/xray/cert.crt
 cp ~/AutoscriptXRAY/config/xray.json \
 /etc/xray/config.json
 
-cp ~/AutoscriptXRAY/config/xray.conf \
-/etc/nginx/conf.d/xray.conf
+cp /root/nindy/config/xray.json \
+/etc/xray/config.json
 
-chmod 644 /etc/xray/config.json
-chmod 644 /etc/nginx/conf.d/xray.conf
+cp /root/nindy/config/xray.conf \
+/etc/nginx/conf.d/xray.conf
 
 # ================= XRAY SERVICE =================
 
