@@ -15,16 +15,14 @@ sleep 1
 
 if ! command -v nginx >/dev/null 2>&1; then
 echo -e "${RED}[ERROR] NGINX not installed!${NC}"
-echo -e "${RED}Run install/nginx.sh first${NC}"
-exit 1
-fi
+echo -e "${RED
 
-if [[ ! -f ~/AutoscriptXRAY/config/xray.json ]]; then
+if [[ ! -f /root/nindy/config/xray.json ]]; then
 echo -e "${RED}[ERROR] xray.json not found!${NC}"
 exit 1
 fi
 
-if [[ ! -f ~/AutoscriptXRAY/config/xray.conf ]]; then
+if [[ ! -f /root/nindy/config/xray.conf ]]; then
 echo -e "${RED}[ERROR] xray.conf not found!${NC}"
 exit 1
 fi
