@@ -1,8 +1,7 @@
 #!/bin/bash
 # ==========================================
-# RENEW ZIVPN USER - by znandev
+# RENEW ZIVPN USER
 # ==========================================
-set -e
 
 DB="/etc/zivpn/users.db"
 TEMP="/tmp/zivpn-renew.tmp"
@@ -16,30 +15,31 @@ CYAN='\033[1;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m       RENEW ZIVPN USER            \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}      RENEW ZIVPN USER${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
 echo ""
 
 # ==============================
 # CHECK EMPTY DB
 # ==============================
-if [[ ! -f $DB ]] || [[ ! -s $DB ]]; then
-    echo -e "${RED}❌ No ZIVPN users found!${NC}"
+
+if [[ ! -s $DB ]]; then
+    echo -e "${RED}No ZIVPN users found!${NC}"
     echo ""
-    echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-    echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    m-zivpn
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    exit 0
 fi
 
 # ==============================
 # HEADER
 # ==============================
+
 printf "${WHITE} %-4s %-18s %-15s${NC}\n" \
 "NO" "USERNAME" "EXPIRED"
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 NO=1
 
@@ -54,51 +54,48 @@ while read -r user exp; do
 
 done < "$DB"
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo ""
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 # ==============================
-# INPUT USER & VALIDATION
+# INPUT USER
 # ==============================
+
 echo ""
-until [[ $user =~ ^[a-zA-Z0-9_]+$ ]]; do
-    read -rp "Input Username : " user
-done
+
+read -rp "Input Username : " user
 
 # ==============================
 # CHECK USER
 # ==============================
-if ! grep -wq "^$user " "$DB"; then
-    echo -e "\n${RED}❌ User not found!${NC}"
+
+if ! grep -wq "^$user " $DB; then
     echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    m-zivpn
+    echo -e "${RED}User not found!${NC}"
+    exit 1
 fi
 
 # ==============================
 # INPUT RENEW DAYS
 # ==============================
-read -rp "Extend Days   : " days
 
-if ! [[ "$days" =~ ^[0-9]+$ ]]; then
-    echo -e "\n${RED}❌ Masukkan angka hari yang valid!${NC}"
-    echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    m-zivpn
-fi
+read -rp "Extend Days   : " days
 
 # ==============================
 # GET OLD EXP DATE
 # ==============================
-old_exp=$(grep "^$user " "$DB" | awk '{print $2}')
+
+old_exp=$(grep "^$user " $DB | awk '{print $2}')
 
 # ==============================
 # CALCULATE NEW EXP
 # ==============================
+
 today=$(date +%s)
-old_exp_ts=$(date -d "$old_exp" +%s 2>/dev/null || date +%s)
+old_exp_ts=$(date -d "$old_exp" +%s)
 
 if [[ $old_exp_ts -lt $today ]]; then
-    new_exp=$(date -d "+$days days" +"%Y-%m-%d")
+    new_exp=$(date -d "$days days" +"%Y-%m-%d")
 else
     new_exp=$(date -d "$old_exp +$days days" +"%Y-%m-%d")
 fi
@@ -106,6 +103,7 @@ fi
 # ==============================
 # UPDATE DB
 # ==============================
+
 awk -v user="$user" -v exp="$new_exp" '
 {
     if ($1 == user) {
@@ -114,38 +112,35 @@ awk -v user="$user" -v exp="$new_exp" '
         print
     }
 }
-' "$DB" > "$TEMP"
+' $DB > $TEMP
 
-mv "$TEMP" "$DB"
+mv $TEMP $DB
 
 # ==============================
 # REBUILD CONFIG
 # ==============================
-if [ -f /root/AutoscriptXRAY/udp/rebuild-config.sh ]; then
-    bash /root/AutoscriptXRAY/udp/rebuild-config.sh
-fi
+
+bash /root/AutoscriptXRAY/udp/rebuild-config.sh
 
 clear
 
 # ==============================
 # SUCCESS OUTPUT
 # ==============================
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m       RENEW ZIVPN SUCCESS         \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}      RENEW SUCCESS${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 echo ""
 echo -e " ${WHITE}Username${NC}     : $user"
 echo -e " ${WHITE}Old Expired${NC} : $old_exp"
 echo -e " ${WHITE}New Expired${NC} : $new_exp"
 echo -e " ${WHITE}Extended${NC}    : $days Days"
-echo ""
-
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 
 echo ""
-read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-# Kembali ke menu ZIVPN
+echo ""
+read -n 1 -s -r -p "Press any key to back menu..."
 m-zivpn
-
