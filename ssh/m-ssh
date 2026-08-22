@@ -1,158 +1,42 @@
 #!/bin/bash
 # ==========================================
-# MENU SSH & WS - by znandev
+# Menu Manajemen SSH & Dropbear
 # ==========================================
 
 clear
+echo -e "\033[0;36m==========================================\033[0m"
+echo -e "\033[0;32m            MANAJEMEN AKUN SSH            \033[0m"
+echo -e "\033[0;36m==========================================\033[0m"
+echo -e " [1] \033[0;33mBuat Akun SSH & Dropbear (addssh.sh)\033[0m"
+echo -e " [2] \033[0;33mCek User Login SSH\033[0m"
+echo -e " [3] \033[0;33mHapus Akun SSH\033[0m"
+echo -e " [x] \033[0;31mKembali ke Menu Utama\033[0m"
+echo -e "\033[0;36m==========================================\033[0m"
+read -p " Pilih opsi [1-3 atau x]: " ssh_opt
 
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[1;36m'
-RED='\033[1;31m'
-WHITE='\033[1;37m'
-NC='\033[0m'
-
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m          MENU SSH & WS            \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo ""
-
-echo -e " ${GREEN}[1]${NC} Add SSH Account        ${GREEN}[6]${NC} List Member SSH"
-echo -e " ${GREEN}[2]${NC} Trial SSH Account      ${GREEN}[7]${NC} Delete Expired SSH"
-echo -e " ${GREEN}[3]${NC} Renew SSH Account      ${GREEN}[8]${NC} Check Service SSH"
-echo -e " ${GREEN}[4]${NC} Delete SSH Account     ${GREEN}[9]${NC} Restart Service SSH"
-echo -e " ${GREEN}[5]${NC} Check User Login       ${GREEN}[x]${NC} ⬅ BACK TO MENU"
-
-echo ""
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-read -rp "👉 Pilih opsi: " opt
-
-case $opt in
+case $ssh_opt in
     1)
-        if [ -f /etc/autoscriptvpn/ssh/addssh.sh ]; then
-            bash /etc/autoscriptvpn/ssh/addssh.sh
+        if [ -f "./ssh/addssh.sh" ]; then
+            bash ./ssh/addssh.sh
         else
-            echo -e "\n${RED}❌ Script addssh.sh tidak ditemukan di /etc/autoscriptvpn/ssh/!${NC}"
-            sleep 15
-            m-ssh
+            echo -e "\033[0;31m[X] Skrip addssh.sh belum tersedia.\033[0m"
+            sleep 1
         fi
         ;;
     2)
-        clear
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[44;1;39m       TRIAL SSH ACCOUNT           \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\n${YELLOW}⚠️ Fitur ini akan segera hadir...${NC}"
-        echo ""
-        read -n 1 -s -r -p "Tekan apa saja untuk kembali..."
-        m-ssh
+        echo -e "\033[0;32m--- Daftar User yang Sedang Login ---\033[0m"
+        who
+        read -p "Tekan [Enter] untuk kembali..."
         ;;
     3)
-        clear
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[44;1;39m       RENEW SSH ACCOUNT           \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\n${YELLOW}⚠️ Fitur ini akan segera hadir...${NC}"
-        echo ""
-        read -n 1 -s -r -p "Tekan apa saja untuk kembali..."
-        m-ssh
-        ;;
-    4)
-        clear
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[44;1;39m       DELETE SSH ACCOUNT          \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\n${YELLOW}⚠️ Fitur ini akan segera hadir...${NC}"
-        echo ""
-        read -n 1 -s -r -p "Tekan apa saja untuk kembali..."
-        m-ssh
-        ;;
-    5)
-        clear
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[44;1;39m       CHECK USER LOGIN            \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo ""
-        if [ -f /usr/bin/user-limit ] || command -v w &> /dev/null; then
-            w
-        else
-            echo -e "${YELLOW}⚠️ Belum ada data login aktif.${NC}"
-        fi
-        echo ""
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        read -n 1 -s -r -p "Tekan apa saja untuk kembali..."
-        m-ssh
-        ;;
-    6)
-        clear
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[44;1;39m        LIST MEMBER SSH            \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo ""
-        awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd
-        echo ""
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        read -n 1 -s -r -p "Tekan apa saja untuk kembali..."
-        m-ssh
-        ;;
-    7)
-        clear
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[44;1;39m      DELETE EXPIRED SSH           \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\n${YELLOW}⚠️ Fitur ini akan segera hadir...${NC}"
-        echo ""
-        read -n 1 -s -r -p "Tekan apa saja untuk kembali..."
-        m-ssh
-        ;;
-    8)
-        clear
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[44;1;39m       CHECK SSH SERVICES          \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo ""
-        systemctl status ssh --no-pager | head -n 5
-        echo ""
-        systemctl status dropbear --no-pager | head -n 5
-        echo ""
-        systemctl status sshws --no-pager 2>/dev/null || systemctl status ws-dropbear --no-pager | head -n 5
-        echo ""
-        systemctl status ssh-ssl-ws --no-pager 2>/dev/null || systemctl status ws-stunnel --no-pager | head -n 5
-        echo ""
-        systemctl status udp-custom --no-pager | head -n 5
-        echo ""
-        systemctl status badvpn --no-pager 2>/dev/null || systemctl status udpgw --no-pager | head -n 5
-        echo ""
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        read -n 1 -s -r -p "Tekan apa saja untuk kembali..."
-        m-ssh
-        ;;
-    9)
-        clear
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\E[44;1;39m       RESTART SERVICES            \E[0m"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        echo -e "\n🔄 Sedang me-restart layanan SSH & Tunnel..."
-        
-        systemctl restart ssh 2>/dev/null || true
-        systemctl restart dropbear 2>/dev/null || true
-        systemctl restart sshws 2>/dev/null || systemctl restart ws-dropbear 2>/dev/null || true
-        systemctl restart ssh-ssl-ws 2>/dev/null || systemctl restart ws-stunnel 2>/dev/null || true
-        systemctl restart udp-custom 2>/dev/null || true
-        systemctl restart badvpn 2>/dev/null || systemctl restart udpgw 2>/dev/null || true
-
-        echo ""
-        echo -e "${GREEN}✅ Semua layanan SSH berhasil direstart!${NC}"
-        echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-        read -n 1 -s -r -p "Tekan apa saja untuk kembali..."
-        m-ssh
+        echo -e "\033[0;33mFitur hapus akun akan segera dijalankan...\033[0m"
+        sleep 1
         ;;
     x|X)
-        menu
+        exit 0
         ;;
     *)
-        echo -e "\n${RED}❌ Pilihan salah!${NC}"
+        echo -e "\033[0;31mPilihan tidak valid!\033[0m"
         sleep 1
-        m-ssh
         ;;
 esac
