@@ -1,63 +1,30 @@
 #!/bin/bash
 # ==========================================
-# Fix & Install Dropbear WS & Stunnel WS
+# Installer Modul SSH & Dropbear
 # ==========================================
-echo "Memasang ulang Go WS services..."
 
-# Jika folder sumber Go ada, kompilasi ulang
-if [[ -d "internal/go" ]]; then
-    cd internal/go
-    go build -ldflags="-s -w" -o /usr/local/bin/dropbearws ./dropbear-ws 2>/dev/null || true
-    go build -ldflags="-s -w" -o /usr/local/bin/stunnelws ./stunnel-ws 2>/dev/null || true
-    cd - >/dev/null
+# Sumber helper warna (jika dijalankan terpisah)
+[ -f "../tools/helper.sh" ] && source ../tools/helper.sh
+
+echo -e "\033[0;34m[*] Mengonfigurasi SSH dan Dropbear...\033[0m"
+
+# Update dan instal Dropbear
+apt update && apt install -y dropbear
+
+# Konfigurasi port Dropbear (Port 443 dan 109)
+sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=443/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_EXTRA_ARGS=""/DROPBEAR_EXTRA_ARGS="-p 109 -p 443"/g' /etc/default/dropbear
+
+# Buat banner / issue.net jika ada di config
+if [ -f "./config/issue.net" ]; then
+    cp ./config/issue.net /etc/issue.net
+    sed -i 's/^Banner.*/Banner \/etc\/issue.net/g' /etc/ssh/sshd_config
 fi
 
-# Jika file dropbearws masih belum ada, buat file dummy/script pengganti agar service bisa jalan
-if [[ ! -f /usr/local/bin/dropbearws ]]; then
-    cat > /usr/local/bin/dropbearws << 'EOF'
-#!/bin/bash
-while true; do
-    nc -l -p 80 -c "nc 127.0.0.1 109" 2>/dev/null || sleep 2
-done
-EOF
-    chmod +x /usr/local/bin/dropbearws
-fi
+# Restart layanan SSH dan Dropbear
+systemctl restart ssh
+systemctl restart dropbear
+systemctl enable dropbear
 
-# Buat service systemd
-cat > /etc/systemd/system/dropbearws.service <<EOF
-[Unit]
-Description=Dropbear WS Service
-After=network.target
-
-[Service]
-Type=simple
-User=root
-ExecStart=/usr/local/bin/dropbearws
-Restart=always
-RestartSec=3s
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-cat > /etc/systemd/system/stunnelws.service <<EOF
-[Unit]
-Description=Stunnel WS Service
-After=network.target
-
-[Service]
-Type=simple
-User=root
-ExecStart=/usr/local/bin/stunnelws
-Restart=always
-RestartSec=3s
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
-systemctl enable dropbearws stunnelws
-systemctl restart dropbearws stunnelws
-
-echo "Dropbear WS dan Stunnel WS berhasil diperbaiki."
+echo -e "\033[0;32m[✓] SSH & Dropbear berhasil dikonfigurasi!\033[0m"
