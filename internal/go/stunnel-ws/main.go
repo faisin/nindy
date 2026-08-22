@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	ListenAddr  = "0.0.0.0:2096"
+	ListenAddr = "0.0.0.0:2096"
 	DefaultHost = "127.0.0.1:109"
-	Password    = ""
+	Password = ""
 )
 
 var Response = []byte(
@@ -54,7 +54,7 @@ func handle(client net.Conn) {
 
 		headers = append(headers, line)
 
-		if line == "\r\n" || line == "\n" {
+		if line == "\r\n" {
 			break
 		}
 	}
@@ -70,13 +70,13 @@ func handle(client net.Conn) {
 	pass := getHeader(rawHeader, "X-Pass")
 
 	if Password != "" && pass != Password {
-		_, _ = client.Write([]byte("HTTP/1.1 400 WrongPass!\r\n\r\n"))
+		client.Write([]byte("HTTP/1.1 400 WrongPass!\r\n\r\n"))
 		return
 	}
 
 	if !strings.HasPrefix(hostPort, "127.0.0.1") &&
 		!strings.HasPrefix(hostPort, "localhost") {
-		_, _ = client.Write([]byte("HTTP/1.1 403 Forbidden!\r\n\r\n"))
+		client.Write([]byte("HTTP/1.1 403 Forbidden!\r\n\r\n"))
 		return
 	}
 
@@ -97,11 +97,8 @@ func handle(client net.Conn) {
 		return
 	}
 
-	// Menggunakan io.MultiReader agar sisa data di buffer reader tidak hilang
-	clientStream := io.MultiReader(reader, client)
-
 	go func() {
-		_, _ = io.Copy(target, clientStream)
+		_, _ = io.Copy(target, reader)
 		if tcp, ok := target.(*net.TCPConn); ok {
 			_ = tcp.CloseWrite()
 		}
@@ -117,10 +114,12 @@ func handle(client net.Conn) {
 
 func getHeader(raw string, key string) string {
 	for _, line := range strings.Split(raw, "\r\n") {
+
 		if strings.HasPrefix(
 			strings.ToLower(line),
 			strings.ToLower(key)+":",
 		) {
+
 			parts := strings.SplitN(
 				line,
 				":",
@@ -147,4 +146,3 @@ func init() {
 	fmt.Println(":---------------------------:")
 	fmt.Println("")
 }
-
