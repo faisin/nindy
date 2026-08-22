@@ -16,7 +16,7 @@ sleep 1
 
 # ================= VALIDATION =================
 
-if [[ ! -f ~/AutoscriptXRAY/config/issue.net ]]; then
+if [[ ! -f /root/nindy/config/issue.net ]]; then
     echo -e "${RED}[ERROR] issue.net not found!${NC}"
     exit 1
 fi
@@ -90,7 +90,7 @@ dropbearkey -t ecdsa -f /etc/dropbear/dropbear_ecdsa_host_key
 
 # ================= BANNER =================
 
-cp ~/AutoscriptXRAY/config/issue.net /etc/issue.net
+cp /root/nindy/config/issue.net /etc/issue.net
 chmod 644 /etc/issue.net
 
 # ================= DROPBEAR CONFIG =================
@@ -127,7 +127,7 @@ if ! command -v go >/dev/null 2>&1; then
     apt install -y golang-go
 fi
 
-cd ~/AutoscriptXRAY/internal/go || exit 1
+cd /root/nindy/internal/go || exit 1
 
 go build -ldflags="-s -w" \
     -o /usr/local/bin/dropbearws \
@@ -146,11 +146,11 @@ go build -ldflags="-s -w" \
 chmod +x /usr/local/bin/dropbearws
 chmod +x /usr/local/bin/stunnelws
 
-cp ~/AutoscriptXRAY/internal/go/dropbear-ws.service \
-    /etc/systemd/system/dropbear-ws.service
+cp /root/nindy/internal/go/dropbear-ws.service \
+/etc/systemd/system/dropbear-ws.service
 
-cp ~/AutoscriptXRAY/internal/go/stunnel-ws.service \
-    /etc/systemd/system/stunnel-ws.service
+cp /root/nindy/internal/go/stunnel-ws.service \
+/etc/systemd/system/stunnel-ws.service
 
 
 # ================= INSTALL BADVPN UDPGW =================
@@ -188,12 +188,12 @@ chmod +x /usr/local/bin/udp-custom
 
 mkdir -p /etc/udp-custom
 
-cp ~/AutoscriptXRAY/config/udp-custom.json \
+cp /root/nindy/config/udp-custom.json \
 /etc/udp-custom/config.json
 
-# ================= UDP CUSTOM SERVICE =================
+# ===============================
 
-cp ~/AutoscriptXRAY/sshws/udp-custom.service \
+cp /root/nindy/sshws/udp-custom.service \
 /etc/systemd/system/
 
 # ================= PERMISSION =================
