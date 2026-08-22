@@ -172,19 +172,13 @@ sleep 2
 # ==========================================
 
 info "Installing NGINX Reverse Proxy..."
-bash install/nginx.sh
+bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/nginx.sh)
 
 info "Installing XRAY Core..."
-bash install/xray.sh
+bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/xray.sh)
 
 info "Installing SSH Websocket..."
-bash install/ssh.sh
-
-info "Installing WireGuard..."
-bash install/wg.sh
-
-info "Installing UDP ZIVPN..."
-bash install/zivpn.sh
+bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/ssh.sh)
 
 # ==========================================
 # COPY MENU COMMAND
