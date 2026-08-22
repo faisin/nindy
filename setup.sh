@@ -303,8 +303,8 @@ echo -e " Installation Time : $((elapsed / 60)) menit $((elapsed % 60)) detik"
 echo -e "${blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 echo ""
-echo -e "${green}♻️ VPS akan reboot dalam 05 detik...${NC}"
+echo -e "${green}♻️ VPS akan reboot dalam 10 detik...${NC}"
 
-sleep 05
+sleep 10
 
 reboot
