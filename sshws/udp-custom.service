@@ -1,12 +1,9 @@
 [Unit]
-Description=UDP Custom Service - by znandev
-After=network.target nss-lookup.target
+Description=UDP Custom Service
+After=network.target
 
 [Service]
 User=root
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
-AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
-NoNewPrivileges=true
 Type=simple
 WorkingDirectory=/etc/udp-custom
 ExecStart=/usr/local/bin/udp-custom server -c /etc/udp-custom/config.json -exclude 7300
@@ -15,4 +12,3 @@ RestartSec=3s
 
 [Install]
 WantedBy=multi-user.target
-
