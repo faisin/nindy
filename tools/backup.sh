@@ -1,27 +1,52 @@
 #!/bin/bash
-# ==========================================
-# Utilitas Backup VPS - Nindy VPS
-# ==========================================
+# Backup tool - by znand-dev
+
+# Warna
+GREEN='\e[1;32m'
+YELLOW='\e[1;33m'
+CYAN='\e[1;36m'
+NC='\e[0m'
 
 clear
-echo -e "\033[0;36m==========================================\033[0m"
-echo -e "\033[0;32m            SISTEM BACKUP VPS             \033[0m"
-echo -e "\033[0;36m==========================================\033[0m"
-echo -e "\033[0;33m[*] Memproses pencadangan data sistem...\033[0m"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}            🔄 BACKUP & RESTORE TOOLS         ${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}[1]${NC} Backup Data"
+echo -e "${GREEN}[2]${NC} Restore Data"
+echo -e "${GREEN}[x]${NC} Kembali ke menu"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+read -p "👉 Pilih opsi: " opt
 
-# Tentukan direktori backup
-BACKUP_DIR="/root/backup"
-mkdir -p $BACKUP_DIR
-DATE=$(date +"%Y-%m-%d")
-FILE_NAME="backup-$DATE.zip"
+backup_folder="/root/backup-autoscript"
+mkdir -p "$backup_folder"
 
-# Kompres folder konfigurasi penting
-zip -r "$BACKUP_DIR/$FILE_NAME" /etc/xray /etc/default/dropbear /root/nindy/config > /dev/null 2>&1
+case $opt in
+1)
+  echo -e "\n📦 Membuat backup..."
+  cp -r /etc/xray/config.json $backup_folder/ 2>/dev/null
+  cp -r /etc/xray/domain $backup_folder/ 2>/dev/null
+  cp -r /usr/bin/* $backup_folder/ 2>/dev/null
 
-if [ -f "$BACKUP_DIR/$FILE_NAME" ]; then
-    echo -e "\033[0;32m[✓] Backup berhasil disimpan di: $BACKUP_DIR/$FILE_NAME\033[0m"
-else
-    echo -e "\033[0;31m[X] Gagal melakukan backup data!\033[0m"
-fi
-
-read -p "Tekan [Enter] untuk kembali..."
+  cd /root
+  zip -r backup-autoscript.zip backup-autoscript >/dev/null
+  echo -e "\n✅ Backup selesai!"
+  echo -e "📁 File: /root/backup-autoscript.zip"
+  echo -e "${YELLOW}Simpan file zip ini untuk restore nanti.${NC}"
+  ;;
+2)
+  read -p "🗂 Masukkan path file ZIP backup: " path
+  if [[ -f "$path" ]]; then
+    echo -e "\n🔄 Restore data..."
+    unzip "$path" -d /root >/dev/null
+    cp -r /root/backup-autoscript/config.json /etc/xray/
+    cp -r /root/backup-autoscript/domain /etc/xray/
+    cp -r /root/backup-autoscript/* /usr/bin/
+    systemctl restart xray
+    echo -e "\n✅ Restore selesai!"
+  else
+    echo -e "❌ File backup tidak ditemukan!"
+  fi
+  ;;
+x) menu ;;
+*) echo "❌ Pilihan salah!" ; sleep 1 ; bash $0 ;;
+esac
