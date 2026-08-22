@@ -1,237 +1,64 @@
 #!/bin/bash
+source ./tools/helper.sh
 
-# ZNANDEV XRAY PANEL (Fixed & Synced Version)
+while true; do
+    print_banner
+    echo -e " [1] ${GREEN}Menu Akun SSH & Dropbear${NC}"
+    echo -e " [2] ${GREEN}Menu Xray (Trojan / Vless / Vmess)${NC}"
+    echo -e " [3] ${GREEN}Menu UDP / Zivpn${NC}"
+    echo -e " [4] ${GREEN}Menu Wireguard${NC}"
+    echo -e " [5] ${GREEN}Menu Tools & Backup${NC}"
+    echo -e " [x] ${RED}Keluar (Exit)${NC}"
+    echo -e "${CYAN}==========================================${NC}"
+    read -p " Silakan pilih menu [1-5 atau x]: " choice
 
-# ================= COLOR =================
-PANEL_VERSION="v2.1.1"
-
-RED='\033[1;31m'
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[1;34m'
-CYAN='\033[1;36m'
-WHITE='\033[1;37m'
-NC='\033[0m'
-
-CONFIG="/etc/xray/config.json"
-LOG="/var/log/xray/access.log"
-
-# ================= ANIMATION =================
-
-loading() {
-    local text="$1"
-    echo -ne "${CYAN}➜ ${text}${NC}"
-    for i in {1..3}; do
-        echo -ne "."
-        sleep 0.2
-    done
-    echo ""
-}
-
-type_text() {
-    local delay="${2:-0.02}"
-    while IFS= read -r -n1 char; do
-        printf "%s" "$char"
-        sleep "$delay"
-    done
-    echo
-}
-
-# ================= SYSTEM INFO =================
-
-IP=$(curl -s ipv4.icanhazip.com || echo "N/A")
-DOMAIN=$(cat /etc/xray/domain 2>/dev/null || echo "N/A")
-
-ISP=$(curl -s --max-time 3 ipinfo.io/org | cut -d " " -f2-)
-[[ -z "$ISP" ]] && ISP="Unknown"
-
-UPTIME=$(uptime -p | sed 's/up //')
-TIME=$(date "+%d-%m-%Y %H:%M:%S")
-
-OS=$(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
-CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print $2+$4"%"}')
-RAM=$(free -m | awk 'NR==2{printf "%sMB / %sMB",$3,$2}')
-DISK=$(df -h / | awk 'NR==2{print $3 "/" $2}')
-
-# ================= NETWORK =================
-
-IFACE=$(ip route get 1.1.1.1 | awk '{print $5; exit}' 2>/dev/null)
-[[ -z "$IFACE" ]] && IFACE="eth0"
-
-MONTH_NAME=$(date +"%Y-%m")
-
-TODAY=$(vnstat -i $IFACE 2>/dev/null | awk '/today/ {print $8" "$9}')
-YESTERDAY=$(vnstat -i $IFACE 2>/dev/null | awk '/yesterday/ {print $8" "$9}')
-MONTH=$(vnstat -i $IFACE 2>/dev/null | awk -v m="$MONTH_NAME" '$1 ~ m {print $8" "$9}')
-TOTAL_BW=$(vnstat --oneline 2>/dev/null | cut -d; -f15)
-
-[[ -z "$TODAY" ]] && TODAY="0 B"
-[[ -z "$YESTERDAY" ]] && YESTERDAY="0 B"
-[[ -z "$MONTH" ]] && MONTH="0 B"
-[[ -z "$TOTAL_BW" ]] && TOTAL_BW="0 B"
-
-# ================= STATUS SERVICE =================
-
-# Disesuaikan dengan nama service yang aktif di sistem Anda
-XRAY=$(systemctl is-active xray)
-[[ $XRAY == "active" ]] && XRAY="${GREEN}🟢 ONLINE ${NC}" || XRAY="${RED}🔴 OFFLINE${NC}"
-
-NGINX=$(systemctl is-active nginx)
-[[ $NGINX == "active" ]] && NGINX="${GREEN}🟢 ONLINE ${NC}" || NGINX="${RED}🔴 OFFLINE${NC}"
-
-WG=$(systemctl is-active wg-quick@wg0)
-[[ $WG == "active" ]] && WG="${GREEN}🟢 ONLINE ${NC}" || WG="${RED}🔴 OFFLINE${NC}"
-
-ZIVPN=$(systemctl is-active zivpn)
-[[ $ZIVPN == "active" ]] && ZIVPN="${GREEN}🟢 ONLINE ${NC}" || ZIVPN="${RED}🔴 OFFLINE${NC}"
-
-UDPCUSTOM=$(systemctl is-active udp-custom 2>/dev/null)
-[[ $UDPCUSTOM == "active" || $UDPCUSTOM == "activating" ]] && UDPCUSTOM="${GREEN}🟢 ONLINE ${NC}" || UDPCUSTOM="${RED}🔴 OFFLINE${NC}"
-
-# Diperbarui menggunakan sshws
-DROPBEARWS=$(systemctl is-active sshws)
-[[ $DROPBEARWS == "active" ]] && DROPBEARWS="${GREEN}🟢 ONLINE ${NC}" || DROPBEARWS="${RED}🔴 OFFLINE${NC}"
-
-# Diperbarui menggunakan stunnelws
-STUNNELWS=$(systemctl is-active stunnelws)
-[[ $STUNNELWS == "active" ]] && STUNNELWS="${GREEN}🟢 ONLINE ${NC}" || STUNNELWS="${RED}🔴 OFFLINE${NC}"
-
-DROPBEAR=$(systemctl is-active dropbear)
-[[ $DROPBEAR == "active" ]] && DROPBEAR="${GREEN}🟢 ONLINE ${NC}" || DROPBEAR="${RED}🔴 OFFLINE${NC}"
-
-# ================= USER COUNT =================
-
-VMESS=$(jq '[.inbounds[] | select(.tag=="vmess-ws-tls").settings.clients[]] | length' $CONFIG 2>/dev/null || echo "0")
-VLESS=$(jq '[.inbounds[] | select(.tag=="vless-ws-tls").settings.clients[]] | length' $CONFIG 2>/dev/null || echo "0")
-TROJAN=$(jq '[.inbounds[] | select(.tag=="trojan-ws-tls").settings.clients[]] | length' $CONFIG 2>/dev/null || echo "0")
-SSWS=$(jq '[.inbounds[] | select(.tag=="ssws-ws-tls").settings.clients[]] | length' $CONFIG 2>/dev/null || echo "0")
-ZIVPN_USER=$(grep -vc '^$' /etc/zivpn/users.db 2>/dev/null || echo "0")
-SSH_USER=$(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd | wc -l || echo "0")
-
-VMESS=${VMESS:-0}
-VLESS=${VLESS:-0}
-TROJAN=${TROJAN:-0}
-SSWS=${SSWS:-0}
-ZIVPN_USER=${ZIVPN_USER:-0}
-SSH_USER=${SSH_USER:-0}
-
-TOTAL=$((VMESS + VLESS + TROJAN + SSWS + ZIVPN_USER + SSH_USER))
-
-ONLINE=$(tail -n 500 /var/log/xray/access.log 2>/dev/null | grep -Eo 'tcp:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | cut -d':' -f2 | sort -u | wc -l || echo "0")
-
-# ===== INIT =====
-
-clear
-
-echo -ne "${RED}"
-printf "⚡ Loading ZNANDEV XRAY PANEL ⚡" | type_text 0.01
-echo -e "${NC}"
-
-loading "Loading System Modules"
-loading "Checking Services"
-loading "Reading Traffic Database"
-
-echo ""
-echo -e "${GREEN}✔ System Ready!${NC}"
-sleep 0.5
-clear
-
-# ================= HEADER =================
-
-echo -e "${CYAN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-echo -e "${CYAN}┃${WHITE}          ⚡ ZNANDEV XRAY PANEL ⚡           ${CYAN}┃${NC}"
-echo -e "${CYAN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-
-# ================= SYSTEM INFO =================
-
-echo -e "${YELLOW}┌──────────────── SYSTEM INFO ────────────────┐${NC}"
-printf " ${WHITE}IP VPS      ${NC}: %-25s\n" "$IP"
-printf " ${WHITE}DOMAIN      ${NC}: %-25s\n" "$DOMAIN"
-printf " ${WHITE}ISP         ${NC}: %-25s\n" "$ISP"
-printf " ${WHITE}OS          ${NC}: %-25s\n" "$OS"
-printf " ${WHITE}UPTIME      ${NC}: %-25s\n" "$UPTIME"
-printf " ${WHITE}CPU USAGE   ${NC}: %-25s\n" "$CPU"
-printf " ${WHITE}RAM USAGE   ${NC}: %-25s\n" "$RAM"
-printf " ${WHITE}DISK USAGE  ${NC}: %-25s\n" "$DISK"
-printf " ${WHITE}SERVER TIME ${NC}: %-25s\n" "$TIME"
-echo -e "${YELLOW}└─────────────────────────────────────────────┘${NC}"
-
-# ================= BANDWIDTH =================
-
-echo -e "${CYAN}┌──────────────── BANDWIDTH ──────────────────┐${NC}"
-printf " ${WHITE}TODAY${NC}      : %-12s ${WHITE}YESTERDAY${NC}: %-12s\n" "$TODAY" "$YESTERDAY"
-printf " ${WHITE}THIS MONTH${NC} : %-12s ${WHITE}TOTAL${NC}    : %-12s\n" "$MONTH" "$TOTAL_BW"
-echo -e "${CYAN}└─────────────────────────────────────────────┘${NC}"
-
-# ================= USER ==================
-
-echo -e "${CYAN}┌──────────────── USER STATS ─────────────────┐${NC}"
-echo -e " ${WHITE}VMESS${NC} : $VMESS      ${WHITE}VLESS${NC}  : $VLESS      ${WHITE}TROJAN${NC}: $TROJAN"
-echo -e " ${WHITE}SSWS${NC}  : $SSWS      ${WHITE}SSH${NC}    : $SSH_USER      ${WHITE}ZIVPN${NC} : $ZIVPN_USER"
-echo -e " ${WHITE}TOTAL${NC} : $TOTAL      ${WHITE}ONLINE${NC} : $ONLINE"
-echo -e "${CYAN}└─────────────────────────────────────────────┘${NC}"
-
-# ================= SERVICE =================
-
-echo -e "${BLUE}┌──────────────── SERVICE ────────────────────┐${NC}"
-echo -e " ${WHITE}XRAY${NC}      : $XRAY   ${WHITE}NGINX${NC}     : $NGINX     "
-echo -e " ${WHITE}DROPBEAR${NC}  : $DROPBEAR   ${WHITE}WIREGUARD${NC} : $WG        "
-echo -e " ${WHITE}UDP CUSTOM${NC}: $UDPCUSTOM   ${WHITE}UDP ZIVPN${NC} : $ZIVPN     "
-echo -e " ${WHITE}SSH WS${NC}    : $DROPBEARWS   ${WHITE}WSS${NC}       : $STUNNELWS "
-echo -e "${BLUE}└─────────────────────────────────────────────┘${NC}"
-
-# ================= MENU =================
-
-echo -e "${RED}┌──────────────── MAIN MENU ──────────────────┐${NC}"
-echo -e " [1] ${WHITE}SSH${NC}           [8] ${WHITE}TOOLS${NC}"
-echo -e " [2] ${WHITE}VMESS${NC}         [9] ${WHITE}STATUS${NC}"
-echo -e " [3] ${WHITE}VLESS${NC}         [10] ${WHITE}CLEAR RAM${NC}"
-echo -e " [4] ${WHITE}TROJAN${NC}        [11] ${WHITE}REBOOT VPS${NC}"
-echo -e " [5] ${WHITE}SSWS${NC}          [12] ${WHITE}UNINSTALL${NC}"
-echo -e " [6] ${WHITE}WIREGUARD${NC}     [13] ${WHITE}UDP CUSTOM${NC}"
-echo -e " [7] ${WHITE}UDP ZIVPN${NC}     [x] ${WHITE}EXIT${NC}"
-echo -e "${RED}└─────────────────────────────────────────────┘${NC}"
-
-echo -e "${RED}┌──────────────── LICENSE ────────────────────┐${NC}"
-echo -e " ${WHITE}License${NC} : ZNDEV-ULTIMATE-2026"
-echo -e " ${WHITE}Type${NC}    : Lifetime Premium"
-echo -e "${RED}└─────────────────────────────────────────────┘${NC}"
-
-read -rp "Select Menu : " menu
-
-case $menu in
-    1) m-ssh ;;
-    2) m-vmess ;;
-    3) m-vless ;;
-    4) m-trojan ;;
-    5) m-ssws ;;
-    6) m-wg ;;
-    7) m-zivpn ;;
-    8) tools-menu ;;
-    9) running.sh ;;
-    10) 
-        echo -e "${CYAN}➜ Membersihkan RAM Cache...${NC}"
-        sync; echo 3 > /proc/sys/vm/drop_caches
-        sleep 1
-        echo -e "${GREEN}✔ RAM berhasil dibersihkan!${NC}"
-        sleep 1.5
-        exec menu
-        ;;
-    11) reboot ;;
-    12) 
-        if [ -f /root/uninstall.sh ]; then
-            bash /root/uninstall.sh
-        else
-            echo -e "${RED}❌ Script uninstall.sh tidak ditemukan di /root/ !${NC}"
-            sleep 2
-            exec menu
-        fi
-        ;;
-    13) systemctl status udp-custom ;;
-    x) exit ;;
-    *)
-        echo -e "${RED}❌ Invalid menu!${NC}"
-        sleep 1
-        exec menu
-        ;;
-esac
+    case $choice in
+        1) 
+            if [ -f "./ssh/m-ssh" ]; then
+                bash ./ssh/m-ssh
+            else
+                echo -e "${RED}[X] File m-ssh tidak ditemukan!${NC}"; sleep 1
+            fi
+            ;;
+        2) 
+            # Contoh masuk ke manajemen x-ray trojan/vmess
+            clear
+            echo -e "${YELLOW}=== MANAJEMEN XRAY ===${NC}"
+            echo -e " [1] Buat Akun Trojan"
+            echo -e " [2] Buat Akun Vmess"
+            read -p " Pilih: " xray_opt
+            if [ "$xray_opt" = "1" ]; then
+                bash ./xray/add-trojan.sh
+            elif [ "$xray_opt" = "2" ]; then
+                bash ./xray/add-vmess.sh
+            fi
+            ;;
+        3) 
+            if [ -f "./udp/m-zivpn" ]; then
+                bash ./udp/m-zivpn
+            else
+                bash ./udp/trial-zivpn.sh
+            fi
+            ;;
+        4) 
+            if [ -f "./wg/m-wg" ]; then
+                bash ./wg/m-wg
+            fi
+            ;;
+        5) 
+            if [ -f "./tools/tools-menu" ]; then
+                bash ./tools/tools-menu
+            else
+                bash ./tools/running.sh
+            fi
+            ;;
+        x|X) 
+            echo -e "${GREEN}Terima kasih telah menggunakan script Nindy!${NC}"
+            exit 0 
+            ;;
+        *) 
+            echo -e "${RED}Pilihan tidak valid!${NC}"
+            sleep 1 
+            ;;
+    esac
+done
