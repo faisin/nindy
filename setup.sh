@@ -183,28 +183,46 @@ bash <(wget -qO- https://raw.githubusercontent.com/faisin/nindy/main/install/ssh
 # ==========================================
 # COPY MENU COMMAND
 # ==========================================
+info "Mengunduh file menu dan submenu ke sistem..."
 
-info "Menyalin command menu..."
+wget -O /usr/bin/menu https://raw.githubusercontent.com/faisin/nindy/main/menu.sh
+chmod +x /usr/bin/menu
 
-cp -f ssh/m-ssh /usr/bin/
+wget -O /usr/bin/m-ssh https://raw.githubusercontent.com/faisin/nindy/main/ssh/m-ssh
+chmod +x /usr/bin/m-ssh
 
-cp -f xray/m-vmess /usr/bin/
-cp -f xray/m-vless /usr/bin/
-cp -f xray/m-trojan /usr/bin/
-cp -f xray/m-ssws /usr/bin/
+wget -O /usr/bin/m-vmess https://raw.githubusercontent.com/faisin/nindy/main/xray/m-vmess
+chmod +x /usr/bin/m-vmess
 
-cp -f wg/m-wg /usr/bin/
+wget -O /usr/bin/m-vless https://raw.githubusercontent.com/faisin/nindy/main/xray/m-vless
+chmod +x /usr/bin/m-vless
 
-cp -f udp/m-zivpn /usr/bin/
+wget -O /usr/bin/m-trojan https://raw.githubusercontent.com/faisin/nindy/main/xray/m-trojan
+chmod +x /usr/bin/m-trojan
 
-cp -f tools/tools-menu /usr/bin/
+wget -O /usr/bin/m-ssws https://raw.githubusercontent.com/faisin/nindy/main/xray/m-ssws
+chmod +x /usr/bin/m-ssws
 
-cp -f tools/backup.sh /usr/bin/
-cp -f tools/speedtest.sh /usr/bin/
-cp -f tools/domain.sh /usr/bin/
-cp -f tools/running.sh /usr/bin/
+wget -O /usr/bin/m-wg https://raw.githubusercontent.com/faisin/nindy/main/wg/m-wg
+chmod +x /usr/bin/m-wg
 
-cp -f menu.sh /usr/bin/menu
+wget -O /usr/bin/m-zivpn https://raw.githubusercontent.com/faisin/nindy/main/udp/m-zivpn
+chmod +x /usr/bin/m-zivpn
+
+wget -O /usr/bin/tools-menu https://raw.githubusercontent.com/faisin/nindy/main/tools/tools-menu
+chmod +x /usr/bin/tools-menu
+
+wget -O /usr/bin/backup.sh https://raw.githubusercontent.com/faisin/nindy/main/tools/backup.sh
+chmod +x /usr/bin/backup.sh
+
+wget -O /usr/bin/speedtest.sh https://raw.githubusercontent.com/faisin/nindy/main/tools/speedtest.sh
+chmod +x /usr/bin/speedtest.sh
+
+wget -O /usr/bin/domain.sh https://raw.githubusercontent.com/faisin/nindy/main/tools/domain.sh
+chmod +x /usr/bin/domain.sh
+
+wget -O /usr/bin/running.sh https://raw.githubusercontent.com/faisin/nindy/main/tools/running.sh
+chmod +x /usr/bin/running.sh
 
 # ==========================================
 # SET PERMISSION
