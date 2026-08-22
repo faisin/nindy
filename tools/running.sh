@@ -1,37 +1,32 @@
 #!/bin/bash
-# ==========================================
-# Cek Status Layanan & Port Aktif
-# ==========================================
+# Submenu Status Service - by znand-dev
+
+# Warna
+NC='\e[0m'
+GREEN='\e[1;32m'
+YELLOW='\e[1;33m'
+CYAN='\e[1;36m'
 
 clear
-echo -e "\033[0;36m==========================================\033[0m"
-echo -e "\033[0;32m         STATUS LAYANAN & PORT VPS        \033[0m"
-echo -e "\033[0;36m==========================================\033[0m"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${CYAN}          📡 STATUS LAYANAN AKTIF           ${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-# Cek Xray Service
-if systemctl is-active --quiet xray; then
-    echo -e " Xray Core : \033[0;32m[RUNNING]\033[0m"
-else
-    echo -e " Xray Core : \033[0;31m[STOPPED]\033[0m"
-fi
+# Cek status layanan utama
+services=(
+  "ssh"
+  "dropbear"
+  "sshws"
+  "xray"
+  "stunnel4"
+  "wg-quick@wg0"
+)
 
-# Cek Dropbear Service
-if systemctl is-active --quiet dropbear; then
-    echo -e " Dropbear  : \033[0;32m[RUNNING]\033[0m"
-else
-    echo -e " Dropbear  : \033[0;31m[STOPPED]\033[0m"
-fi
+for svc in "${services[@]}"; do
+  status=$(systemctl is-active $svc 2>/dev/null)
+  printf "%-15s : %s\n" "$svc" "${status^^}"
+done
 
-# Cek Nginx Service
-if systemctl is-active --quiet nginx; then
-    echo -e " Nginx     : \033[0;32m[RUNNING]\033[0m"
-else
-    echo -e " Nginx     : \033[0;31m[STOPPED]\033[0m"
-fi
-
-echo -e "\033[0;36m------------------------------------------\033[0m"
-echo -e "\033[0;33mDaftar Port Aktif di Sistem:\033[0m"
-netstat -nutlp | grep LISTEN
-
-echo -e "\033[0;36m==========================================\033[0m"
-read -p "Tekan [Enter] untuk kembali ke menu..."
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+read -n1 -r -p "⏎ Tekan enter untuk kembali ke menu utama..."
+menu
