@@ -1,8 +1,7 @@
 #!/bin/bash
 # ==========================================
-# DELETE ZIVPN USER - by znandev
+# DELETE ZIVPN USER
 # ==========================================
-set -e
 
 DB="/etc/zivpn/users.db"
 
@@ -15,30 +14,31 @@ CYAN='\033[1;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m       DELETE ZIVPN USER           \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}      DELETE ZIVPN USER${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
 echo ""
 
 # ==============================
 # CHECK EMPTY DB
 # ==============================
-if [[ ! -f $DB ]] || [[ ! -s $DB ]]; then
-    echo -e "${RED}❌ No ZIVPN users found!${NC}"
+
+if [[ ! -s $DB ]]; then
+    echo -e "${RED}No ZIVPN users found!${NC}"
     echo ""
-    echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-    echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    m-zivpn
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    exit 0
 fi
 
 # ==============================
 # SHOW USER LIST
 # ==============================
+
 printf "${WHITE} %-4s %-18s %-15s${NC}\n" \
 "NO" "USERNAME" "EXPIRED"
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 NO=1
 
@@ -53,57 +53,56 @@ while read -r user exp; do
 
 done < "$DB"
 
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo ""
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 # ==============================
-# INPUT USER & VALIDATION
+# INPUT USER
 # ==============================
+
 echo ""
-until [[ $user =~ ^[a-zA-Z0-9_]+$ ]]; do
-    read -rp "Input Username : " user
-done
+
+read -rp "Input Username : " user
 
 # ==============================
 # CHECK USER
 # ==============================
-if ! grep -wq "^$user" "$DB"; then
-    echo -e "\n${RED}❌ User not found!${NC}"
+
+if ! grep -wq "^$user" $DB; then
     echo ""
-    read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
-    m-zivpn
+    echo -e "${RED}User not found!${NC}"
+    exit 1
 fi
 
 # ==============================
 # DELETE USER
 # ==============================
-sed -i "/^$user /d" "$DB"
+
+sed -i "/^$user /d" $DB
 
 # ==============================
 # REBUILD CONFIG
 # ==============================
-if [ -f /root/AutoscriptXRAY/udp/rebuild-config.sh ]; then
-    bash /root/AutoscriptXRAY/udp/rebuild-config.sh
-fi
+
+bash /root/AutoscriptXRAY/udp/rebuild-config.sh
 
 clear
 
 # ==============================
 # SUCCESS OUTPUT
 # ==============================
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[44;1;39m       DELETE ZIVPN SUCCESS        \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}      DELETE SUCCESS${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 echo ""
 echo -e " ${WHITE}Username${NC} : $user"
 echo -e " ${WHITE}Status${NC}   : Deleted Successfully"
-echo ""
-
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 
 echo ""
-read -n 1 -s -r -p "Tekan apa saja untuk kembali ke menu..."
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-# Kembali ke menu ZIVPN
+echo ""
+read -n 1 -s -r -p "Press any key to back menu..."
 m-zivpn
-
